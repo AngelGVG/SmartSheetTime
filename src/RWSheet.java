@@ -4,31 +4,49 @@ import com.smartsheet.api.Smartsheet;
 import com.smartsheet.api.SmartsheetFactory;
 import com.smartsheet.api.models.Cell;
 import com.smartsheet.api.models.Column;
+import com.smartsheet.api.models.Folder;
+import com.smartsheet.api.models.PagedResult;
 import com.smartsheet.api.models.Row;
 import com.smartsheet.api.models.Sheet;
 
 import java.io.File;
 import java.util.*;
+import java.time.*;
 
 
 public class RWSheet {
-    static {
-        // These lines enable logging to the console
-        System.setProperty("Smartsheet.trace.parts", "RequestBodySummary,ResponseBodySummary");
-        System.setProperty("Smartsheet.trace.pretty", "true");
-    }
+	static {
+		// These lines enable logging to the console
+		System.setProperty("Smartsheet.trace.parts", "RequestBodySummary,ResponseBodySummary");
+		System.setProperty("Smartsheet.trace.pretty", "true");
+	}
 
-    // The API identifies columns by Id, but it's more convenient to refer to column names
-    private static HashMap<String, Long> columnMap = new HashMap<String, Long>();   // Map from friendly column name to column Id
+	// The API identifies columns by Id, but it's more convenient to refer to column names
+	private static HashMap<String, Long> columnMap = new HashMap<String, Long>();   // Map from friendly column name to column Id
 
-    public static void main(final String[] args) {
+	public static void main(final String[] args) {
 
-        try {
-            // Initialize client. Gets API access token from SMARTSHEET_ACCESS_TOKEN variable
-            Smartsheet smartsheet = SmartsheetFactory.createDefaultClient();
+		try {
+			// Initialize client. Gets API access token from SMARTSHEET_ACCESS_TOKEN variable
+			// Token is set as environment variable in Eclipse settings
+			Smartsheet smartsheet = SmartsheetFactory.createDefaultClient();
 
-            Sheet sheet = smartsheet.sheetResources().importXlsx("Sample Sheet.xlsx", "sample", 0, 0);
+			Sheet sheet = smartsheet.sheetResources().importXlsx("Sample Sheet.xlsx", "sample", 0, 0);
+			PagedResult<Sheet> sheets2 = smartsheet.sheetResources().listSheets(null, null, null);
+			//PagedResult<Folder> folders = smartsheet.folderResources().listFolders(0, null);
 
+			for(Sheet s : sheets2.getData()) {
+				//Calendar today = Calendar.getInstance();
+				if(s.getName().equals("Reminders")) {
+					//System.out.println(s.getId());
+					Sheet reminder = smartsheet.sheetResources().getSheet(s.getId(), null, null, null, null, null, null, null, null);
+
+					for (Column column : reminder.getColumns()) {
+						columnMap.put(column.getTitle(), column.getId());
+					}
+				}
+			}
+			/*
             // Load the entire sheet
             sheet = smartsheet.sheetResources().getSheet(sheet.getId(), null, null, null, null, null, null, null);
             System.out.println("Loaded " + sheet.getRows().size() + " rows from sheet: " + sheet.getName());
@@ -54,53 +72,54 @@ public class RWSheet {
                 smartsheet.sheetResources().rowResources().updateRows(sheet.getId(), rowsToUpdate);
                 System.out.println("Done");
             }
-        } catch (Exception ex) {
-            System.out.println("Exception : " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    }
+			 */
+		} catch (Exception ex) {
+			System.out.println("Exception : " + ex.getMessage());
+			ex.printStackTrace();
+		}
 
-    /*
-     * TODO: Replace the body of this loop with your code
-     * This *example* looks for rows with a "Status" column marked "Complete" and sets the "Remaining" column to zero
-     *
-     * Return a new Row with updated cell values, else null to leave unchanged
-     */
-    private static Row evaluateRowAndBuildUpdates(Row sourceRow) {
-        Row rowToUpdate = null;
+	}
 
-        // Find cell we want to examine
-        Cell statusCell = getCellByColumnName(sourceRow, "Status");
+	/*
+	 * TODO: Replace the body of this loop with your code
+	 * This *example* looks for rows with a "Status" column marked "Complete" and sets the "Remaining" column to zero
+	 *
+	 * Return a new Row with updated cell values, else null to leave unchanged
+	 */
+	private static Row evaluateRowAndBuildUpdates(Row sourceRow) {
+		Row rowToUpdate = null;
 
-        if ("Complete".equals(statusCell.getDisplayValue())) {
-            Cell remainingCell = getCellByColumnName(sourceRow, "Remaining");
-            if (! "0".equals(remainingCell.getDisplayValue()))                  // Skip if "Remaining" is already zero
-            {
-                System.out.println("Need to update row #" + sourceRow.getRowNumber());
+		// Find cell we want to examine
+		Cell statusCell = getCellByColumnName(sourceRow, "Status");
 
-                Cell cellToUpdate = new Cell();
-                cellToUpdate.setColumnId(columnMap.get("Remaining"));
-                cellToUpdate.setValue(0);
+		if ("Complete".equals(statusCell.getDisplayValue())) {
+			Cell remainingCell = getCellByColumnName(sourceRow, "Remaining");
+			if (! "0".equals(remainingCell.getDisplayValue()))                  // Skip if "Remaining" is already zero
+			{
+				System.out.println("Need to update row #" + sourceRow.getRowNumber());
 
-                List<Cell> cellsToUpdate = Arrays.asList(cellToUpdate);
+				Cell cellToUpdate = new Cell();
+				cellToUpdate.setColumnId(columnMap.get("Remaining"));
+				cellToUpdate.setValue(0);
 
-                rowToUpdate = new Row();
-                rowToUpdate.setId(sourceRow.getId());
-                rowToUpdate.setCells(cellsToUpdate);
-            }
-        }
-        return rowToUpdate;
-    }
+				List<Cell> cellsToUpdate = Arrays.asList(cellToUpdate);
 
-    // Helper function to find cell in a row
-    static Cell getCellByColumnName(Row row, String columnName) {
-        Long colId = columnMap.get(columnName);
+				rowToUpdate = new Row();
+				rowToUpdate.setId(sourceRow.getId());
+				rowToUpdate.setCells(cellsToUpdate);
+			}
+		}
+		return rowToUpdate;
+	}
 
-        return row.getCells().stream()
-                .filter(cell -> colId.equals((Long) cell.getColumnId()))
-                .findFirst()
-                .orElse(null);
+	// Helper function to find cell in a row
+	static Cell getCellByColumnName(Row row, String columnName) {
+		Long colId = columnMap.get(columnName);
 
-    }
+		return row.getCells().stream()
+				.filter(cell -> colId.equals((Long) cell.getColumnId()))
+				.findFirst()
+				.orElse(null);
+	}
 
 }
