@@ -43,8 +43,10 @@ public class RWSheet {
 				columnMap.put(column.getTitle(), column.getId());
 			}
 			
+			//smartsheet.
+			
 			List<Row> rows = reminder.getRows();
-			//ArrayList<Row> re = new ArrayList<>();
+			ArrayList<Row> re = new ArrayList<>();
 			//System.out.print(rows.get(0).getCells().get(0).getValue());
 			for(Row r : rows) {
 				//c.getIndex()
@@ -55,10 +57,15 @@ public class RWSheet {
 					String val = (String) value;
 					if(val != null && val.equals("In Progress")) {
 						System.out.println(r.getId());
+						re.add(r);
+						break;
 						//Cell cell2 = getCellByColumnName(r, "Assigned To");
+						
 					}
 				//}
 			}
+			
+			sendEmail.reminder("fullra01@gettysburg.edu", re, id);
 			
 			//smartsheet.sheetResources().rowResources().updateRows(id, re);
 			
