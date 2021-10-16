@@ -31,19 +31,47 @@ public class RWSheet {
 			// Token is set as environment variable in Eclipse settings
 			Smartsheet smartsheet = SmartsheetFactory.createDefaultClient();
 
-			Sheet sheet = smartsheet.sheetResources().importXlsx("Sample Sheet.xlsx", "sample", 0, 0);
+			//Sheet sheet = smartsheet.sheetResources().importXlsx("Sample Sheet.xlsx", "sample", 0, 0);
 			PagedResult<Sheet> sheets2 = smartsheet.sheetResources().listSheets(null, null, null);
+			
+			//change string to the id of the sheet you want to read
+			long id = Long.parseLong("4187144668374916");
+			Sheet reminder = smartsheet.sheetResources().getSheet(id, null, null, null, null, null, null, null, null, null);
+			
+			// put the columns in a hashmap for easy acesss
+			for (Column column : reminder.getColumns()) {
+				columnMap.put(column.getTitle(), column.getId());
+			}
+			
+			List<Row> rows = reminder.getRows();
+			//ArrayList<Row> re = new ArrayList<>();
+			//System.out.print(rows.get(0).getCells().get(0).getValue());
+			for(Row r : rows) {
+				//c.getIndex()
+				Cell cell = getCellByColumnName(r, "Status");
+				Object value = cell.getValue();
+				
+				//if(value instanceof String) {
+					String val = (String) value;
+					if(val != null && val.equals("In Progress")) {
+						System.out.println(r.getId());
+						//Cell cell2 = getCellByColumnName(r, "Assigned To");
+					}
+				//}
+			}
+			
+			//smartsheet.sheetResources().rowResources().updateRows(id, re);
+			
 			//PagedResult<Folder> folders = smartsheet.folderResources().listFolders(0, null);
 
+			/*
 			for(Sheet s : sheets2.getData()) {
 				//Calendar today = Calendar.getInstance();
 				if(s.getName().equals("Reminders")) {
 					//System.out.println(s.getId());
 					Sheet reminder = smartsheet.sheetResources().getSheet(s.getId(), null, null, null, null, null, null, null, null);
 
-					for (Column column : reminder.getColumns()) {
-						columnMap.put(column.getTitle(), column.getId());
-					}
+					
 				}
 			}
 			/*
