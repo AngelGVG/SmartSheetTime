@@ -1,37 +1,28 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import com.smartsheet.api.Smartsheet;
-import com.smartsheet.api.SmartsheetException;
 import com.smartsheet.api.SmartsheetFactory;
 import com.smartsheet.api.models.MultiRowEmail;
 import com.smartsheet.api.models.Recipient;
 import com.smartsheet.api.models.RecipientEmail;
 import com.smartsheet.api.models.Row;
+import com.smartsheet.api.models.RowEmail;
 import com.smartsheet.api.models.SheetEmail;
 import com.smartsheet.api.models.enums.SheetEmailFormat;
 
-public class sendEmail {
+public class sendEmail 
+{
 
-	public static boolean reminder(String email, ArrayList<Row> rows, long sheetId) {
+	public static boolean reminder(Timekeeper time) 
+	{
 	
-		RecipientEmail recipientEmail = new RecipientEmail().setEmail(email);
+		RecipientEmail recipientEmail = new RecipientEmail().setEmail(time.assignedTo);
 
 		List<Recipient> recipientList = Arrays.asList(recipientEmail);
 		
-//		SheetEmail emailSpecification = new SheetEmail();
-//		emailSpecification.setFormat(SheetEmailFormat.PDF);
-//		emailSpecification.setFormatDetails(formatDetails)
-//		  .setSendTo(recipientList)
-//		  .setSubject("Reminder")
-//		  .setMessage("You need to work on a task on this Smartsheet")
-//		  .setCcMe(false);
-		
 		List<Long> ids = new ArrayList<Long>();
-		for(Row r : rows) {
-			ids.add(r.getId());
-		}
+		ids.add(time.rowId);
 
 		MultiRowEmail multiRowEmail = new MultiRowEmail.AddMultiRowEmailBuilder()
 				  .setSendTo(recipientList)
@@ -42,10 +33,19 @@ public class sendEmail {
 				  .setIncludeAttachments(false)
 				  .setIncludeDiscussions(false)
 				  .build();
+		
+//		RowEmail multiRowEmail = new RowEmail.AddRowEmailBuilder()
+//				  .setSendTo(recipientList)
+//				  .setSubject("Reminder")
+//				  .setMessage("You need to work on this task")
+//				  .setCcMe(false)
+//				  .setIncludeAttachments(false)
+//				  .setIncludeDiscussions(false)
+//				  .build();
 
 		Smartsheet smartsheet = SmartsheetFactory.createDefaultClient();
 		try {
-			smartsheet.sheetResources().rowResources().sendRows(sheetId, multiRowEmail);
+			smartsheet.sheetResources().rowResources().sendRows(time.sheetId, multiRowEmail);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
