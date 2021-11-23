@@ -12,8 +12,12 @@ public class Timekeeper
 	String status;
 	long rowId;
 	double totalReminder;
+	String userToken;
+	String refresh;
 	
-	public Timekeeper(double period, LocalDate start, String category, String item, String assignedTo, String status, long rowId, long sheetId, double totalReminder) 
+	public Timekeeper(double period, LocalDate start, String category, String item,
+			String assignedTo, String status, long rowId, long sheetId, double totalReminder,
+			String userToken, String refreshToken) 
 	{
 		this.period = period;
 		this.start = start;
@@ -24,6 +28,8 @@ public class Timekeeper
 		this.sheetId = sheetId;
 		this.rowId = rowId;
 		this.totalReminder = totalReminder;
+		this.userToken = userToken;
+		refresh = refreshToken;
 	}
 	
 	public boolean checkTime() 

@@ -43,7 +43,7 @@ public class sendEmail
 //				  .setIncludeDiscussions(false)
 //				  .build();
 
-		Smartsheet smartsheet = SmartsheetFactory.createDefaultClient();
+		Smartsheet smartsheet = SmartsheetFactory.createDefaultClient(time.userToken);
 		try {
 			smartsheet.sheetResources().rowResources().sendRows(time.sheetId, multiRowEmail);
 		} catch (Exception e) {
